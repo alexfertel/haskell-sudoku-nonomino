@@ -1,7 +1,6 @@
 module Logic where 
     import Data.Maybe
     import Data.List
-    import Sudoku
 
     data Board = Board {
         squares :: [Square]
@@ -19,18 +18,26 @@ module Logic where
 
     type Point = (Int, Int)
 
-    data Nonomino = Nonomino Int [Point] deriving Show
+    data Nonomino = Nonomino {
+        nid :: Int,
+        points :: [(Int, Point)]
+    } deriving Show
+
+    justPoints :: Nonomino -> [Point]
+    justPoints nono = map snd (points nono)
 
     sqsToList :: [Square] -> [Point]
     sqsToList = map (\square -> (row square, col square))
 
     nonoToSquares :: Nonomino -> [Square]
-    nonoToSquares (Nonomino nid pts) = sqs
-        where sqs = map (\(i, j) -> Square i j (Just nid) (Left [1..9])) pts
+    nonoToSquares nono = sqs
+        where sqs = map (\(v, (i, j)) -> Square i j (Just (nid nono)) (st v)) (points nono)
+              st 0 = Left [1..9]
+              st i = Right i
 
     compute :: Point -> Nonomino -> Nonomino
-    compute (x, y) (Nonomino nid pts) = Nonomino nid pts'
-        where pts' = map (\(i, j) -> (x + i, y + j)) pts
+    compute (x, y) nono = Nonomino (nid nono) pts'
+        where pts' = map (\(v, (i, j)) -> (v, (x + i, y + j))) (points nono)
 
     emptyBoard :: Board
     emptyBoard = Board [Square x y Nothing (Left [1..9]) | x <- [0..8], y <- [0..8]]
@@ -66,10 +73,10 @@ module Logic where
     firstEmpty sqs = head $ sort $ map (\square -> (row square, col square)) $ empty sqs
 
     collides :: Nonomino -> Board -> Bool
-    collides (Nonomino _ pts) board = any (\point -> occupied point board) pts
+    collides nono board = any (\point -> occupied point board) (justPoints nono)
 
     invalid :: Nonomino -> Bool
-    invalid (Nonomino _ pts) = any (\(x, y) -> x < 0 || 8 < x || y < 0 || 8 < y) pts  
+    invalid nono = any (\(x, y) -> x < 0 || 8 < x || y < 0 || 8 < y) (justPoints nono)  
 
     updateBoard :: [Square] -> Board -> Board
     updateBoard [] board = board
@@ -78,18 +85,19 @@ module Logic where
 
     updateSquare :: Square -> Board -> Board    
     updateSquare sq board = Board [ if row sq == row sq' && col sq == col sq' then sq else sq' | sq' <- (squares board) ]
-        
+
     chunks :: Int -> [a] -> [[a]]
     chunks _ [] = []
     chunks size xs = [(take size xs)] ++ (chunks size (drop size xs))
-    
-    linesToTuples :: [String] -> [[(Int, Int, Int)]]
-    linesToTuples l = groupBy (\(i1, _, _) (i2, _, _) -> i1 == i2) (sort tuples) 
-        where matrix = map words l
-              tuples = [(read $ matrix !! i !! j, i, j) | i <- [0..8], j <- [0..8]]
 
-    tuplesToNonos :: [[(Int, Int, Int)]] -> [Nonomino]
-    tuplesToNonos = map (\l@((i, _, _):_) -> Nonomino i (map (\(_, x, y) -> (x, y)) l))
+    -- linesToTuples :: [String] -> [[(Int, Int, Int)]]
+    -- linesToTuples l = groupBy (\(i1, _, _) (i2, _, _) -> i1 == i2) (sort tuples) 
+    --     where matrix = map words l
+    --           tuples = [(read $ matrix !! i !! j, i, j) | i <- [0..8], j <- [0..8]]
+
+    -- tuplesToNonos :: [[(Int, Point)]] -> [Nonomino]
+    -- tuplesToNonos tuples = [Nonomino i (unindexed !! i) | i <- [1..length unindexed]]
+    --     where unindexed = map (\l@((i, _):_) -> map (\(_, (x, y)) -> (x, y)) l) tuples
 
     
 

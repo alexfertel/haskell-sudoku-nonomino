@@ -1,64 +1,43 @@
 module Sudoku where
+    import Logic
+    import Data.List
+    import Data.Maybe
 
-import Data.List
+    -- Get the unsolved Squares from a Board.
+    getLeftSquares :: Board -> [Square]
+    getLeftSquares (Board sqs) = [ sq | sq@(Square _ _ _ (Left _)) <- sqs ]
 
--- data Board = Board {
---     squares :: [Square]
--- } deriving Show
-
--- data Square = Square {
---     col :: Int,
---     row :: Int,
---     nono :: Nonomino,
---     status :: Either [Int] Int
--- } deriving Show
-
-
--- -- Devuelve la lista de las tableros sudokus validos que se pueden generar a partir 
--- -- de la lista de nonominos dada
--- -- buildSudokus :: [Nonomino] -> [[((Int, Int), Nonomino)]]
--- buildSudokus ns = map fromJust $ filter (isJust) [validMatch permutation ns [] | permutation <- permutations]
-
-
--- -- Devuelve si la representacion del sudoku que se genera al unir los nonominos de izq a der 
--- -- en el orden dado es valida, si no se devuelve [] 
--- -- validMatch :: [Int] -> [Nonomino] -> [((Int, Int), Nonomino)] -> [((Int, Int), Nonomino)]
--- validMatch [] _ board = Just board
--- validMatch (h:t) ns board
---     | isNothing newBoard = Nothing
---     | otherwise = validMatch t nonos $ fromJust newBoard
---     where newBoard = placeNonomino (nonos !! h) board
-
--- -- Devuelve la nueva representacion del sudoku que se genera al colocar el nonomino, 
--- -- en un sudoku dado, si no es posible devuelve [] 
--- -- placeNonomino :: Nonomino -> [((Int, Int), Nonomino)] -> [((Int, Int), Nonomino)]
--- placeNonomino nono list
---     | (overlapTiles /= []) || (not $ isInside (Nonomino tiles) firstEmpty) = []
---     | otherwise = list ++ [(firstEmpty, Nonomino tiles)]
---         where
---             firstEmpty = head $ getEmptyTiles list		-- Primera casilla vacia
---             a = fst firstEmpty
---             b = snd firstEmpty
---             overlapTiles = [ (i+a, j+b) | (i, j, _) <- tiles, isUsed (i+a, j+b) list]
---             isInside (Nonomino tiles) (a, b) = 
---                 let outsideTile = find (\(x,y,_) -> (x+a>8) || (y+b>8) || (y+b<0)) tiles
---                 in outsideTile == Nothing 
+    -- Place a given Square on a Board and return the new Board.
+    -- Illegal setSquare calls will just error out.  The main work here
+    -- is to remove the placed digit from the other Squares on the board
+    -- that are in the same column, row, or box.
+    setSquare :: Square -> Board -> Board
+    setSquare sq@(Square scol srow snono (Right d)) (Board sqs) = Board (map set sqs)
+        where set osq@(Square col row nono ds) =
+                if col == scol && row == srow then sq
+                else if col == scol || row == srow || (fromJust nono) == (fromJust snono) then (Square col row nono (sub ds))
+                else osq
+              sub (Left ds) = Left (ds \\ [d])
+              sub (Right d') | d == d' = error "Impossible setSquare"
+              sub dd = dd
+    setSquare _ _ = error "Bad setSquare"
 
 
--- -- Dado la posicion de una casilla y una representacion del sudoku devuelve si 
--- -- esta casilla esta ocupada en esa representacion 
--- isUsed :: (Int, Int) -> [((Int, Int), Nonomino)] -> Bool
--- isUsed (x, y) list = elem (x, y) $ getUsedTiles list
-
-
--- -- Devuelve los pares ordenados (i, j) que estan ocupados por algun Nonomino
--- getUsedTiles :: [((Int, Int), Nonomino)] -> [(Int, Int)]
--- getUsedTiles list = [ (a+i, b+j) | ((a, b), Nonomino tiles) <- list, (i,j,_) <- tiles]
-
-
--- -- Devuelve los pares ordenados (i, j) que esten desocupados
--- getEmptyTiles :: [((Int, Int), Nonomino)] -> [(Int, Int)]
--- getEmptyTiles list = [ (i, j) | i <- [0..8], j <- [0..8], not (elem (i, j) $ getUsedTiles list)]
-
-
+    -- Given an initial Board return all the possible solutions starting
+    -- from that Board.
+    -- Note, this all happens in the list monad and makes use of lazy evaluation
+    -- to avoid work.  Using the list monad automatically handles all the backtracking
+    -- and enumeration of solutions.
+    solveThemAll :: Board -> [Board]
+    solveThemAll brd =
+        case getLeftSquares brd of
+            [] -> return brd            -- Nothing unsolved remains, we are done.
+            sqs -> do
+                -- Sort the unsolved Squares by the ascending length of the possible
+                -- digits.  Pick the first of those so we always solve forced Squares
+                -- first.
+                let Square c r b (Left ds) : _ = sortBy leftLen sqs
+                    leftLen (Square _ _ _ (Left ds1)) (Square _ _ _ (Left ds2)) = compare (length ds1) (length ds2)
+                sq <- [ Square c r b (Right d) | d <- ds ] -- Try all possible moves
+                solveThemAll (setSquare sq brd) -- And solve the extended Board.
 
