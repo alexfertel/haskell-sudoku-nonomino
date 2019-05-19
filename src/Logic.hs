@@ -80,16 +80,16 @@ module Logic where
     updateSquare sq board = Board [ if row sq == row sq' && col sq == col sq' then sq else sq' | sq' <- (squares board) ]
         
     chunks :: Int -> [a] -> [[a]]
-    chunks _ [] = [[]]
+    chunks _ [] = []
     chunks size xs = [(take size xs)] ++ (chunks size (drop size xs))
     
-    linesToTuples :: (Eq a, Read a) => [String] -> [[(Int, Int, a)]]
-    linesToTuples l = groupBy (\(_, _, i1) (_, _, i2) -> i1 == i2) tuples 
+    linesToTuples :: [String] -> [[(Int, Int, Int)]]
+    linesToTuples l = groupBy (\(i1, _, _) (i2, _, _) -> i1 == i2) (sort tuples) 
         where matrix = map words l
-              tuples = [(i, j, read $ matrix !! i !! j) | i <- [0..8], j <- [0..8]]
+              tuples = [(read $ matrix !! i !! j, i, j) | i <- [0..8], j <- [0..8]]
 
     tuplesToNonos :: [[(Int, Int, Int)]] -> [Nonomino]
-    tuplesToNonos = map (\l@((_, _, i):_) -> Nonomino i (map (\(x, y, _) -> (x, y)) l))
+    tuplesToNonos = map (\l@((i, _, _):_) -> Nonomino i (map (\(_, x, y) -> (x, y)) l))
 
     
 

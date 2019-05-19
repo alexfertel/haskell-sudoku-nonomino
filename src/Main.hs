@@ -22,15 +22,18 @@ module Main where
                       Nonomino 9 (box (7, 7)) ]
                       
         args <- getArgs
-        print args
-        contents <- readFile $ "nonos/" ++ head args
-        print contents
-        let nonominos = tuplesToNonos $ linesToTuples $ chunks 9 contents
-
-
-        let board = head $ assemble nonominos
-
-        -- let board = head $ assemble nonos
-
+        contents <- readFile $ "nonos/inputs" ++ head args
+        let board = head $ assemble $ tuplesToNonos $ linesToTuples $ head $ chunks 9 (lines contents)
+        -- print contents
+        -- let ls = chunks 9 (lines contents)
+        -- print ls
+        -- let tuples = linesToTuples $ head ls
+        -- print tuples
+        -- let nonominos = tuplesToNonos tuples
+        -- print nonominos
+        -- let board = head $ assemble nonominos
         putStr $ boardToString board
+
+        
+        -- let board = head $ assemble nonos
         return ()
