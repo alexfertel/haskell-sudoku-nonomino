@@ -11,11 +11,11 @@ module Sudoku where
     sideEffects :: [Square] -> Board -> Board
     sideEffects [] board = board
     sideEffects (s:ss) board = sideEffects ss board'
-        where propagate sq@(Square r c _ (Right d)) =
+        where propagate sq@(Square r c _ (Right d)) = do
                 let newRow = updateSquares d $ getLeftSquares $ getRow r board
                     newCol = updateSquares d $ getLeftSquares $ getCol c board
                     newBox = updateSquares d $ getLeftSquares $ getBox sq board
-                in (newRow ++ newCol ++ newBox)
+                (newRow ++ newCol ++ newBox)
               board' = updateBoard (propagate s) board
 
     updateSquares :: Int -> [Square] -> [Square]
