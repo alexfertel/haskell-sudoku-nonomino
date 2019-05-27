@@ -1,0 +1,143 @@
+
+\documentclass[a4paper, 10pt]{article}
+\input{template.tex}
+
+\setcounter{secnumdepth}{0}
+
+\title{Simulación de la Cocina de Kojo}
+\author{Alexander A. González Fertel C-412\\
+		\href{mailto:a.fertel@estudiantes.matcom.uh.cu}{a.fertel@estudiantes.matcom.uh.cu}}
+\date{}
+
+\begin{document}
+	\maketitle
+	% \newpage
+
+	\section{Problema}
+	La cocina de Kojo es uno de los puestos de comida rápida en un centro
+	comercial. El centro comercial está abierto entre las 10:00 am y las 9:00 pm cada
+	día. En este lugar se sirven dos tipos de productos: sándwiches y sushi. Para los
+	objetivos de este proyecto se asumirá que existen solo dos tipos de consumidores:
+	unos consumen solo sándwiches y los otros consumen solo productos de la gama
+	del sushi. En Kojo hay dos períodos de hora pico durante un día de trabajo;
+	uno entre las 11:30 am y la 1:30 pm, y el otro entre las 5:00 pm y las 7:00
+	pm. El intervalo de tiempo entre el arribo de un consumidor y el de otro no es
+	homogéneo pero, por conveniencia, se asumirá que es homogéneo. El intervalo
+	de tiempo de los segmentos homogéneos, distribuye de forma exponencial.
+	Actualmente dos empleados trabajan todo el día preparando sándwiches y
+	sushi para los consumidores. El tiempo de preparación depende del producto en
+	cuestión. Estos distribuyen de forma uniforme, en un rango de 3 a 5 minutos 
+	para la preparación de sándwiches y entre 5 y 8 minutos para la preparación de
+	sushi.
+	El administrador de Kojo está muy feliz con el negocio, pero ha estado 
+	recibiendo quejas de los consumidores por la demora de sus peticiones. Él está 
+	interesado en explorar algunas opciones de distribución del personal para reducir
+	el número de quejas. Su interés está centrado en comparar la situación actual con
+	una opción alternativa donde se emplea un tercer empleado durante los períodos
+	más ocupados. La medida del desempeño de estas opciones estará dada por el
+	porciento de consumidores que espera más de 5 minutos por un servicio durante
+	el curso de un día de trabajo.
+	Se desea obtener el porciento de consumidores que esperan más de 5 minutos
+	cuando solo dos empleados están trabajando y este mismo dato agregando un
+	empleado en las horas pico.
+	
+	\section{Modelo}
+	Para dicha situación es utilizado un modelo de servidores en paralelo como se muestra en la 
+	en la Figura~\ref{fig:1}. Se realizan 2 tipos de simulaciones, {\itshape normales}
+	y {\itshape mejoradas}. Las primeras son aquellas en las que tenemos solo 2 empleados
+	durante el día, incluyendo los horarios picos. Las que restan son simulaciones en las
+	que se añade un tercer empleado a la cocina en los horarios picos.
+
+	En nuestro sistema, es necesario conocer con qué frecuencia llegan consumidores a la cocina,
+	lo cual está representado por una {\itshape variable aleatoria exponencial}. Dicha variable aleatoria
+	es descrita por su {\itshape valor esperado}, el cual es un parámetro ajustable en la simulación
+	y donde dado un valor fijo de este parámetro obtenemos resultados diferentes. La generación de
+	variables aleatorias exponenciales se realiza utilizando el método de la {\itshape inversa},
+	resultando en: $X = -clogU$, donde $X$ es la variable aleatoria exponencial, $U$ es 
+	una variable aleatoria uniforme $U(0, 1)$ y $c$ es la media de la exponencial, es decir,
+	si la v.a. exponencial tiene como parámetro $\lambda$, entonces $c = \frac{1}{\lambda}$.
+	En la Figura~\ref{fig:2} se pueden ver representadas v.a. exponenciales generadas en este proyecto,
+	dados valores de $\lambda$ distintos.
+
+	\begin{figure}[h]
+		\begin{center}
+			\includegraphics[width=0.6\textwidth]{images/servidores_paralelos.jpg}			
+		\end{center}
+		\caption{Servidores en paralelo.}
+		\label{fig:1}	
+	\end{figure}	
+
+	\begin{figure}[h]
+		\begin{minipage}{.5\textwidth}
+			\centering
+			\includegraphics[width=.75\linewidth]{images/exponential.png}			
+		\end{minipage}
+		\begin{minipage}{.5\textwidth}
+			\centering
+			\includegraphics[width=.75\linewidth]{images/exponential1.png}			
+		\end{minipage}		
+		\caption{Funciones de distribución de variables aleatorias exponenciales.}
+		\label{fig:2}	
+	\end{figure}
+
+	Otro parámetro que cambia en gran medida el resultado de la simulación es qué tipo de producto
+	quiere consumir cada cliente, es decir, asumamos que 1 de cada 2 clientes desea consumir
+	un sándwich, dado esto, se puede afirmar sin simular la situación que aproximadamente
+	al menos la mitad de los clientes van a pasar más de 5 minutos esperando, dado que preparar
+	sushi demora entre 5 y 8 minutos. Por tanto, la proporción de consumidores que quieren cada
+	producto se comporta como una v.a. {\bfseries Bernoulli(p)}.
+
+	Además, durante las horas pico los consumidores llegan siguiendo una distribución exponencial que
+	lógicamente tiene un parámetro mayor que la usada fuera de estas horas. Dicho parámetro también es ajustable
+	en la simulación, es la variable \verb!PH_MEAN! en el archivo \verb!config.py!.
+
+	Cada empleado de la cocina es un servidor que atiende cada pedido dado el producto 
+	que se desee indistintamente. Un consumidor arriba a la cocina y se coloca en la cola,
+	presentándose las siguientes situaciones:
+
+	\begin{itemize}
+		\item
+			Existe al menos un empleado libre, por lo que el consumidor puede ser inmediatamente atendido y pasa
+			a ocupar el primer servidor vacío.
+		\item
+			Dado que no existen servidores vacíos, el cliente se encola hasta nuevo aviso. 
+	\end{itemize}
+
+	En el modelo, el tiempo está representado en segundos, es decir, todas las variables del sistema que 
+	tienen relación con el tiempo son números equivalentes a segundos. Por ejemplo, el resultado de una simulación
+	para una frecuencia de arribo de 5 minutos se obtendría luego de cambiar en el archivo \verb!config.py! la variable
+	\verb!MEAN! a 300. Al llegar el tiempo de cierre de la tienda en el modelo, se deja de generar arribos y se termina
+	de atender a los clientes.
+
+	\section{Discusión de los Resultados}
+	Se realizaron simulaciones para disímiles valores de los parámetros, la cantidad de simulaciones diferentes es
+	la variable \verb!RUNS!, que al momento de escribir este informe, tenía el valor 42674. Toda la información
+	considerada importante de una simulación se persiste en el directorio \verb!logs!. En el directorio \verb!results!
+	se persisten archivos \verb!csv! con pares de porcientos para cada simulación, donde cada par significa cuántos
+	clientes estuvieron más de 5 minutos en el sistema, la primera columna siendo una simulación normal y la segunda
+	una simulación con 3 empleados.
+
+	Para cada valor múltiplo de 30 entre 1 y 10 minutos se realizaron simulaciones donde este representaba el valor
+	esperado de la v.a. exponencial que dictaba la frecuencia de arribos al sistema. Para cada valor de este parámetro se
+	realizaron simulaciones con múltiplos de 0.05 entre 0 y 1 como valor del parámetro que representaba la proporción de
+	consumidores de sándwiches que llegaban al sistema, es decir, si el valor de este parámetro es 0.3, entonces aproximadamente
+	30 de cada 100 personas que llegaran al sistema, consumen sándwiches y el resto sushi.
+
+	Se implementó un mecanismo para conocer qué tanto mejora {\bfseries en promedio} poner un tercer empleado con respecto a
+	una cocina con dos. La Figura~\ref{fig:3} muestra cómo se comporta la simulación con respecto a los parámetros de las
+	v.a. exponenciales y la proporción de personas consumidoras de un producto u otro. En ella se puede ver que a medida
+	que hay menos clientes que consumen sushi, aumenta significativamente la calidad del sistema, dado que si una persona
+	consume sushi está condicionada a esperar entre 5 y 8 minutos. También se puede ver una mejora al disminuir la frecuencia
+	con que llegan personas a la cocina (aumentar el valor esperado), por razones obvias.
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.6\textwidth]{images/behaviour.png}			
+		\caption{Comportamiento de los parámetros.}
+		\label{fig:3}	
+	\end{figure}
+
+	Le recomendaríamos al dueño de la cocina añadir a un tercer empleado, puesto que para parámetros razonables de la simulación,
+	representa una mejora considerable al negocio.
+
+\end{document}
