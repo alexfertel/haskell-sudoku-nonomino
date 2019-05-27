@@ -12,11 +12,26 @@ module Main where
         -- args <- getArgs
         -- contents <- readFile $ "nonos/inputs/" ++ head args
         -- let board = head $ assemble $ tuplesToNonos $ linesToTuples $ head $ chunks 9 (lines contents)
-        let board = head $ assemble test
+        let board = cleanBoard $ head $ assemble test
+        let board' = head $ assemble test
         -- mapM (putStr . boardToString) boards
-        -- putStr $ boardToString board
         let solved = head $ solveThemAll board
-        putStr $ show $ squares board
+        putStrLn $ boardToString board
+        putStrLn $ boardToSudoku board
+
+        -- let board' = updateBoard [Square 8 8 (Just 8) (Right 6), Square 7 8 (Just 8) (Right 6)] board
+        -- putStrLn $ boardToSudoku board'
+
+        -- let sqs = sideEffects [Square 8 7 (Just 8) (Right 7)] board
+        -- mapM (putStrLn . show) $ sqs
+
+        -- putStrLn ""
+
+        -- let sqs' = sideEffects [Square 8 7 (Just 8) (Right 7)] board'
+        -- mapM (putStrLn . show) $ sqs'
+
+        -- mapM (putStrLn . show) $ squares board
+        putStrLn $ boardToSudoku solved
 
         return ()
 
