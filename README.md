@@ -1,6 +1,6 @@
 # Nonominos Sudoku
 
-A nonomino tesellation solver and consequent sudoku-nonomino solver.
+A nonomino tessellation solver and consequent sudoku-nonomino solver.
 
 ## Build
 
