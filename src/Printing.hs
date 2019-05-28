@@ -1,5 +1,5 @@
 module Printing where
-    import Logic
+    import Nonomino
     import Data.List
 
     order :: [Point]

@@ -1,4 +1,4 @@
-module Logic where 
+module Nonomino where 
     import Data.Maybe
     import Data.List
 

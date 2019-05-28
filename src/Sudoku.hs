@@ -1,5 +1,5 @@
 module Sudoku where
-    import Logic
+    import Nonomino
     import Data.List
     import Data.Maybe
     import Data.Either

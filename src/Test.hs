@@ -1,5 +1,5 @@
 module Test where
-    import Logic
+    import Nonomino
     
     cases :: [[Nonomino]]
     cases = 
